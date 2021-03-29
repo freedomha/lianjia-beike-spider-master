@@ -15,7 +15,6 @@ from lib.spider.base_spider import SPIDER_NAME
 
 pymysql.install_as_MySQLdb()
 
-
 def create_prompt_text():
     city_info = list()
     num = 0
@@ -29,7 +28,6 @@ def create_prompt_text():
         else:
             city_info.append(", ")
     return 'Which city data do you want to save ?\n' + ''.join(city_info)
-
 
 if __name__ == '__main__':
     # 设置目标数据库
@@ -62,8 +60,8 @@ if __name__ == '__main__':
     elif database == "json":
         import json
     elif database == "csv":
-        csv_file = open("xiaoqu.csv", "w")
-        line = "{0};{1};{2};{3};{4};{5};{6}\n".format('city_ch', 'date', 'district', 'area', 'xiaoqu', 'price', 'sale')
+        csv_file = open("xiaoqu.csv", "w", encoding='gbk', errors='ignore')
+        line = "{0};{1};{2};{3};{4};{5};{6};{7}\n".format('city_ch', 'date', 'district', 'area', 'xiaoqu', 'price', 'sale', 'buildtime')
         csv_file.write(line)
 
     city = get_city()
@@ -93,7 +91,7 @@ if __name__ == '__main__':
     row = 0
     col = 0
     for csv in files:
-        with open(csv, 'r') as f:
+        with open(csv, 'r', encoding='gbk', errors='ignore') as f:
             for line in f:
                 count += 1
                 text = line.strip()
@@ -101,6 +99,15 @@ if __name__ == '__main__':
                     # 如果小区名里面没有逗号，那么总共是6项
                     if text.count(',') == 5:
                         date, district, area, xiaoqu, price, sale = text.split(',')
+                    elif text.count(',') == 7:
+                        fields = text.split(',')
+                        date = fields[0]
+                        district = fields[1]
+                        area = fields[2]
+                        xiaoqu = fields[3]
+                        price = fields[4]
+                        sale = fields[5]
+                        buildtime = fields[7]
                     elif text.count(',') < 5:
                         continue
                     else:
@@ -108,9 +115,10 @@ if __name__ == '__main__':
                         date = fields[0]
                         district = fields[1]
                         area = fields[2]
-                        xiaoqu = ','.join(fields[3:-2])
-                        price = fields[-2]
-                        sale = fields[-1]
+                        xiaoqu = ','.join(fields[3:-4])
+                        price = fields[-4]
+                        sale = fields[-3]
+                        buildtime = fields[-1]
                 except Exception as e:
                     print(text)
                     print(e)
@@ -120,17 +128,17 @@ if __name__ == '__main__':
                 price = price.replace(r'元/m2', '')
                 price = int(price)
                 sale = int(sale)
-                print("{0} {1} {2} {3} {4} {5}".format(date, district, area, xiaoqu, price, sale))
+                print("{0} {1} {2} {3} {4} {5} {6}".format(date, district, area, xiaoqu, price, sale, buildtime))
                 # 写入mysql数据库
                 if database == "mysql":
                     db.query('INSERT INTO xiaoqu (city, date, district, area, xiaoqu, price, sale) '
                              'VALUES(:city, :date, :district, :area, :xiaoqu, :price, :sale)',
                              city=city_ch, date=date, district=district, area=area, xiaoqu=xiaoqu, price=price,
-                             sale=sale)
+                             sale=sale, buildtime=buildtime)
                 # 写入mongodb数据库
                 elif database == "mongodb":
                     data = dict(city=city_ch, date=date, district=district, area=area, xiaoqu=xiaoqu, price=price,
-                                sale=sale)
+                                sale=sale, buildtime=buildtime)
                     collection.insert(data)
                 elif database == "excel":
                     if not PYTHON_3:
@@ -149,13 +157,14 @@ if __name__ == '__main__':
                         worksheet.write_string(row, col + 4, xiaoqu)
                         worksheet.write_number(row, col + 5, price)
                         worksheet.write_number(row, col + 6, sale)
+                        worksheet.write_number(row, col + 7, buildtime)
                     row += 1
                 elif database == "json":
                     data = dict(city=city_ch, date=date, district=district, area=area, xiaoqu=xiaoqu, price=price,
-                                sale=sale)
+                                sale=sale, buildtime=buildtime)
                     datas.append(data)
                 elif database == "csv":
-                    line = "{0};{1};{2};{3};{4};{5};{6}\n".format(city_ch, date, district, area, xiaoqu, price, sale)
+                    line = "{0};{1};{2};{3};{4};{5};{6};{7}\n".format(city_ch, date, district, area, xiaoqu, price, sale, buildtime)
                     csv_file.write(line)
 
     # 写入，并且关闭句柄

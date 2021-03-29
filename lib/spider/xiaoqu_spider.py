@@ -29,7 +29,7 @@ class XiaoQuBaseSpider(BaseSpider):
         """
         district_name = area_dict.get(area_name, "")
         csv_file = self.today_path + "/{0}_{1}.csv".format(district_name, area_name)
-        with open(csv_file, "w") as f:
+        with open(csv_file, "w", encoding='gbk', errors='ignore') as f:
             # 开始获得需要的板块数据
             xqs = self.get_xiaoqu_info(city_name, area_name)
             # 锁定
@@ -84,14 +84,16 @@ class XiaoQuBaseSpider(BaseSpider):
                 price = house_elem.find('div', class_="totalPrice")
                 name = house_elem.find('div', class_='title')
                 on_sale = house_elem.find('div', class_="xiaoquListItemSellCount")
+                buildtime = soup.find('div', class_="positionInfo")
 
                 # 继续清理数据
                 price = price.text.strip()
                 name = name.text.replace("\n", "")
                 on_sale = on_sale.text.replace("\n", "").strip()
+                buildtime = buildtime.text.replace("\n", "").replace('\xa0','').replace(" ", "").replace("/",",").strip()
 
                 # 作为对象保存
-                xiaoqu = XiaoQu(chinese_district, chinese_area, name, price, on_sale)
+                xiaoqu = XiaoQu(chinese_district, chinese_area, name, price, on_sale, buildtime)
                 xiaoqu_list.append(xiaoqu)
         return xiaoqu_list
 
