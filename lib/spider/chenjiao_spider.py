@@ -55,10 +55,10 @@ class ChenJiaoSpider(BaseSpider):
         district_name = area_dict.get(area_name, "")
         # 中文区县
         #chinese_district = get_chinese_district(district_name)
-        chinese_district = "杨浦"
+        chinese_district = "普陀"
         # 中文版块
-        #chinese_area = chinese_area_dict.get(area_name, "")
-        chinese_area = "中原"
+        chinese_area = chinese_area_dict.get(area_name, "")
+        #chinese_area = "中原"
 
         ershou_list = list()
         page = 'http://{0}.{1}.com/chengjiao/{2}/'.format(city_name, SPIDER_NAME, area_name)
@@ -94,21 +94,23 @@ class ChenJiaoSpider(BaseSpider):
                 
                 name = house_elem.find('div', class_='title')
                 dealDate = house_elem.find('div', class_='dealDate')
+                unitPrice = house_elem.find('div', class_="unitPrice")
 
                 # 继续清理数据
                 if price == None:
                     continue
 
                 price = price.text.strip().replace("\n", "").replace(" ", "").replace("万","").strip()
-                name = name.text.replace("\n", "").replace(" ",",")
-                dealDate =dealDate.text.strip().replace("\n", "").replace(" ", "")
-                
+                name = name.text.replace("\n", "").replace(" ",",").replace("平米","")
+                dealDate =dealDate.text.strip().replace("\n", "").replace(" ", "").replace(".", "-")
+                unitPrice = unitPrice.text.replace("\n", "").replace("元/平","").strip()
+                unitPrice = str(int(unitPrice,10)/10000)
             
                 # print(pic)
 
 
                 # 作为对象保存
-                ershou = ChengJiao(chinese_district, chinese_area, name, price, dealDate)
+                ershou = ChengJiao(chinese_district, chinese_area, name, price, unitPrice, dealDate)
                 ershou_list.append(ershou)
         return ershou_list
 
@@ -120,15 +122,15 @@ class ChenJiaoSpider(BaseSpider):
 
         # 获得城市有多少区列表, district: 区县
         #districts = get_districts(city)
-        districts = ['yangpu']
+        districts = ['putuo']
         print('City: {0}'.format(city))
         print('Districts: {0}'.format(districts))
 
         # 获得每个区的板块, area: 板块
         areas = list()
         for district in districts:
-            #areas_of_district = get_areas(city, district)
-            areas_of_district = ['zhongyuan1']
+            areas_of_district = get_areas(city, district)
+            #areas_of_district = ['zhongyuan1']
             print('{0}: Area list:  {1}'.format(district, areas_of_district))
             # 用list的extend方法,L1.extend(L2)，该方法将参数L2的全部元素添加到L1的尾部
             areas.extend(areas_of_district)
