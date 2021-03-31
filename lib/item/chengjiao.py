@@ -6,11 +6,12 @@
 
 
 class ChengJiao(object):
-    def __init__(self, district, area, name, price, dealDate):
+    def __init__(self, district, area, name, price, unitPrice, dealDate):
         self.district = district
         self.area = area
         self.price = price
         self.name = name
+        self.unitPrice = unitPrice
         self.dealDate = dealDate
         
 
@@ -19,5 +20,6 @@ class ChengJiao(object):
                 self.area + "," + \
                 self.name + "," + \
                 self.price + "," + \
+                self.unitPrice + "," + \
                 self.dealDate
                 
