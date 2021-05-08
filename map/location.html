@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=rVIY9gMCZWjRGiQ4GeKjgys6V53l7xzD"></script>
+    <script type="text/javascript" src="https://mapopen.cdn.bcebos.com/github/BMapGLLib/DistanceTool/src/DistanceTool.min.js"></script>
+    <title>批量地址解析</title>
+    <style>
+       body,html{
+           width: 100%;
+           height: 100%;
+           padding: 0;
+           margin: 0;
+       }
+       #container{
+           width: 100%;
+           height: 100%;
+           overflow: hidden;
+       }
+       #result{
+           position: fixed;
+           top: 10px;
+           right: 10px;
+           width: 150px;
+           height: 40px;
+           line-height: 30px;
+           text-align: center;
+           background: #fff;
+           box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+           border-radius: 7px;
+           z-index: 99;
+       }
+      #result>div:first-child{
+            width: 100%;
+            height: 40px;
+            text-align: center;
+            line-height: 40px;
+            background: #00BFFF;
+            border-radius: 7px 7px 0px 0px;
+            color: #fff;
+      }
+      #result ul{
+           list-style-type: none;
+           margin: 0;
+           padding: 0;
+      }
+      #result ul li{
+           color: #000;
+           padding: 7px;
+           font-size: 14px;
+           text-align: justify;
+           border-bottom: 1px solid #D3D3D3  
+      }
+      #result>div:last-child{
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          padding: 10px;
+      }
+      .btn{ 
+          width: 100px;
+          height: 35px;
+          color: #fff;
+          font-size: 14px;;
+          border-radius: 5px;
+          background: #00BFFF;
+          box-shadow: none;
+      }
+      .btn:hover{
+          cursor: pointer;
+      }
+    </style>
+</head>
+<body>
+    <div id='container'></div>
+    <div id='result'>
+        <div>批量地址解析</div>
+        <div>
+            <button onclick='bdGEO()' class='btn'>批量解析</button>
+        </div>
+        <ul class = "drawing-panel">
+            <input type="button" class="draw-btn" value="开启测距" onclick="myDis.open()">
+            <input type="button" class="draw-btn" value="关闭测距" onclick="myDis.close()">
+        </ul>
+    </div>
+    <script>
+        var map = new BMapGL.Map('container',{
+    minZoom: 14,
+    maxZoom: 20
+});
+        map.centerAndZoom(new BMapGL.Point(121.523,31.301), 13);
+        map.enableScrollWheelZoom(true);
+       
+        var myGeo = new BMapGL.Geocoder();
+        var adds = [
+        '益民小区-低楼层(共14层)-2004-南-8.63',
+'中环和乐苑-低楼层(共34层)-2014-南-8.59',
+'引翔港小区-中楼层(共24层)-1989-南-8.51',
+'中环和润苑-中楼层(共32层)-2013-南-8.21',
+'金鹏花园-高楼层(共24层)-1998-西南-7.95',
+'双阳路50弄-高楼层(共24层)-1995-南-7.85',
+'阳明新城-低楼层(共35层)-1998-东北-7.47',
+'申通公寓-高楼层(共24层)-1996-东-7.14',
+'平凉小区-高楼层(共20层)-1998-西南-7.13',
+'内江二村-低楼层(共24层)-1989-南-7.08',
+'控江路1197弄-高楼层(共20层)-1994-西南-6.98',
+'黄兴路18号-中楼层(共18层)-1997-南西-6.94',
+'宁武小区-低楼层(共24层)-1997-东北-6.81',
+'民欣苑-低楼层(共7层)-1998-南北-7.75',
+'中原路34弄-中楼层(共7层)-1998-南-7.47',
+'龙腾公寓-中楼层(共6层)-1999-南北-7.07',
+'长海一村-高楼层(共6层)-1995-南-6.86',
+'民京路838弄-高楼层(共6层)-1996-南-6.81',
+'市光二村-高楼层(共6层)-1997-南-6.45',
+'市光一村-高楼层(共18层)-1994-南-6.29',
+'城市名园-低楼层(共17层)-2005-南-6.27',
+'政通路118弄-中楼层(共7层)-1997-南北-8.92',
+'政通路311弄-高楼层(共6层)-1998-南-8.29',
+'政通路100弄-高楼层(共7层)-1998-南-7.89',
+'大众花苑-高楼层(共6层)-1997-南-7.89',
+'林绿家园-低楼层(共16层)-1990-南-7.6',
+'政立小区-高楼层(共6层)-1995-南-7.36',
+'益华小区-高楼层(共6层)-1996-南-7.28',
+'海鸿公寓-高楼层(共6层)-1996-南北-7.19',
+'仁德路67弄10支弄-中楼层(共6层)-1997-南-7.07',
+'华丰大楼-低楼层(共17层)-1997-南-6.07',
+'靖宇南路5弄-低楼层(共6层)-1987-南-10.1',
+'凤城六村-低楼层(共6层)-1995-南-8.65',
+'图们新苑-低楼层(共28层)-2015-南-7.96',
+'控江路18弄-高楼层(共6层)-1995-南北-7.66',
+'永吉路97弄-高楼层(共7层)-1994-南北-7.47',
+'双阳大楼-低楼层(共18层)-1993-西南-6.58',
+'靖宇中路58弄-中楼层(共6层)-1994-南-9',
+'浣纱三村-高楼层(共6层)-1995-南-8.49',
+'控江六村-高楼层(共5层)-1981-南-8.41',
+'沧州路180弄-中楼层(共6层)-1987-南-8.02',
+'双阳路604弄-高楼层(共7层)-1996-南-7.56',
+'翔顺公寓-中楼层(共6层)-2000-南-7.56',
+'延吉七村-中楼层(共14层)-1987-南-7.51',
+'松花江路95弄-中楼层(共6层)-1997-南-7.45',
+'宏翔公寓-低楼层(共6层)-1999-南-7.18',
+'松花江路123弄-高楼层(共7层)-1998-南-6.48',
+'安图新村-高楼层(共6层)-1992-南-6.23',
+'松益公寓-中楼层(共24层)-1995-西南-6.13',
+'九州花苑-低楼层(共25层)-1996-东南-6',
+'东方蓝海国际广场-高楼层(共24层)-2013-南-5.18',
+'东上海中心-高楼层(共11层)-2008-南-5.14',
+'辽海小区-高楼层(共7层)-1996-南-8.86',
+'江浦路120号-高楼层(共16层)-1991-南-8.62',
+'明园大楼-高楼层(共22层)-1990-南-8.21',
+'龙江路130弄-高楼层(共6层)-1979-南-8.08',
+'飞帆大楼-中楼层(共10层)-1991-南-7.98',
+'明园公寓-低楼层(共24层)-1994-南-7.86',
+'公交新村-高楼层(共6层)-1981-南-11.4',
+'鞍山八村-高楼层(共6层)-1981-南-10.7',
+'彰武路120弄-低楼层(共18层)-1990-南北-9.49',
+'鞍山四村第二小区-高楼层(共6层)-2009-南北-9.35',
+'阜新路287弄-高楼层(共6层)-1981-南-9.32',
+'密云小区-高楼层(共18层)-1989-南北-8.91',
+'彰武大楼-低楼层(共16层)-1989-南北-8.71',
+'鞍山四村第三小区-高楼层(共6层)-2008-西南-8.64',
+'鞍山四村第一小区-高楼层(共6层)-1987-南-8.53',
+
+
+        ];
+        
+        var index = 0;
+        function bdGEO(){
+            if (index < adds.length) {
+                var add = adds[index];
+                geocodeSearch(add);
+                index++;
+            }
+        }
+        function geocodeSearch(add){
+            if(index < adds.length){
+                setTimeout(window.bdGEO,40);
+            } 
+            myGeo.getPoint(add, function(point){
+                if (point) {
+                    var address = new BMapGL.Point(point.lng, point.lat);
+                    addMarker(address,new BMapGL.Label(index+":"+add,{offset:new BMapGL.Size(10,-10)}),add);
+                }
+            }, "上海市");
+        }
+	// 编写自定义函数,创建标注
+	function addMarker(point,label,add){
+        
+        var num = add.substr(add.lastIndexOf("-") + 1,4);  //截取最后一个点号后4个字符
+        console.log(num);
+        if (num>9){
+            label.setStyle({ color : "#6d0000", fontSize : "10px" });
+        }else if(num>8){
+            label.setStyle({ color : "#e44407", fontSize : "10px" });
+        }else if(num>7){
+            label.setStyle({ color : "#f5a005", fontSize : "10px" });
+        }else if(num>6){
+            label.setStyle({ color : "#9dd000", fontSize : "10px" });
+        }else{
+            label.setStyle({ color : "#0dd000", fontSize : "10px" });
+        }
+        
+		var marker = new BMapGL.Marker(point);
+		map.addOverlay(marker);
+		marker.setLabel(label);
+	}
+
+    var myDis = new BMapGLLib.DistanceTool(map);
+
+    // 监听测距过程中的鼠标事件
+    myDis.addEventListener('drawend', function(e) {
+        console.log("drawend");
+        console.log(e.points);
+        console.log(e.overlays);
+        console.log(e.distance);
+    });
+    myDis.addEventListener("addpoint", function(e) {
+        console.log("addpoint");
+        console.log(e.point);
+        console.log(e.pixel);
+        console.log(e.index);
+        console.log(e.distance);
+    });
+    myDis.addEventListener("removepolyline", function(e) {
+        console.log("removepolyline");
+        console.log(e);
+    });
+
+        var local = new BMapGL.LocalSearch(map, {
+		    renderOptions:{map: map}
+	    });
+        var pStart = new BMapGL.Point(121.491,31.249);
+	    var pEnd = new BMapGL.Point(121.557,31.341);
+	    var bs = new BMapGL.Bounds(pStart,pEnd);   //自己规定范围
+	    local.searchInBounds("小学", bs);
+        local.setPageCapacity(100)
+
+        //map.setMapType(BMAP_EARTH_MAP);
+    </script>
+</body>
+</html>

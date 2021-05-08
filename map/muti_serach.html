@@ -1,0 +1,31 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<script type="text/javascript" src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=rVIY9gMCZWjRGiQ4GeKjgys6V53l7xzD"></script>
+    <title>根据多关键字本地搜索</title>
+    <style type="text/css">
+		body, html,#allmap {width: 100%;height: 100%; margin:0;font-family:"微软雅黑";}
+		#l-map{height:80%;width:100%;}
+		#r-result{width:100%;}
+	</style>
+</head>
+<body>
+	<div id="l-map"></div>
+	<div id="r-result"></div>
+</body>
+</html>
+<script type="text/javascript">
+	// 百度地图API功能
+	var map = new BMapGL.Map("l-map",{
+    minZoom: 14,
+    maxZoom: 14
+});            // 创建Map实例
+	map.centerAndZoom(new BMapGL.Point(121.445,31.213), 14);
+	var myKeys = ['益民小区','中环和乐苑','引翔港小区','中环和润苑','金鹏花园','双阳路50弄','阳明新城','申通公寓'];
+	var local = new BMapGL.LocalSearch(map, {
+		renderOptions:{map: map, panel:"r-result"},
+		pageCapacity:1
+	});
+	local.searchInBounds(myKeys, map.getBounds());
+</script>

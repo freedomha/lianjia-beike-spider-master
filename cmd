@@ -1,0 +1,1 @@
+find  *_*.csv|xargs cat >> sum.csv
