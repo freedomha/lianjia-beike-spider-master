@@ -107,6 +107,7 @@ class ErShouSpider(BaseSpider):
                 followInfo = followInfo.text.replace("\n", "").replace(" ","").replace("/",",").strip()
                 unitPrice = unitPrice.text.replace("\n", "").replace("单价","").replace("元/平米","").strip()
                 unitPrice = str(int(unitPrice,10)/10000)
+                unitPrice = unitPrice[0:4]
                 hid = hid.get('data-hid')
                 subway = subway.text.replace("\n", "").strip()
                 if "近地铁" in subway:
